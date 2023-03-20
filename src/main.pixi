@@ -1,14 +1,33 @@
 include "../lib/pixitracker_audio_engine.pixi"
 
+_last_line = 0
+_line_display = "0000"
+fn tick() {
+    if (_last_line != line_counter) {
+        sprintf(_line_display, "line:%02d", line_counter)
+        _last_line = line_counter
+    }
+}
+
 pta_init()
 pta_load_song( "../sound_files/workdays.piximod" )
+
 pta_play( 1 )
 while 1
 {
     clear()
-    effector( EFF_NOISE, 255, #504030 )
-    print( "This music was created\nin PixiTracker\nwarmplace.ru/soft/pixitracker", 0, 0, WHITE )
-    while( get_event() ) { if EVT[ EVT_TYPE ] == EVT_QUIT { break2 } }
+    while( get_event() ) { 
+        if EVT[ EVT_TYPE ] == EVT_QUIT { break2 }
+        else {
+            if EVT[ EVT_TYPE] != EVT_MOUSEMOVE {
+                printf("key evt: %d\n", EVT[EVT_KEY])
+            }
+        }
+    }
+    tick()
+    print(_line_display, 0, 0, YELLOW)
+
     frame()
 }
 pta_deinit()
+
