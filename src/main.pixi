@@ -2,17 +2,71 @@ include "../lib/pixitracker_audio_engine.pixi"
 
 _last_line = 0
 _line_display = "0000"
+
 fn tick() {
-    if (_last_line != line_counter) {
-        sprintf(_line_display, "line:%02d", line_counter)
-        _last_line = line_counter
-    }
+  if play_status == 1 {
+    $playingIcon = ">"
+  } else {
+    $playingIcon = ""
+  }
+
+  if (_last_line != line_counter) {     
+    _last_line = line_counter
+  }
+  $pat_number = pattab[ cur_pat ] + 1
+  sprintf(_line_display, "[%s] pat:%d line:%02d", $playingIcon, $pat_number ,line_counter)
 }
 
 pta_init()
-pta_load_song( "../sound_files/workdays.piximod" )
+// pta_load_song( "../sound_files/workdays.piximod" )
+pta_load_song( "../sound_files/Example01.piximod" )
 
-pta_play( 1 )
+printf("pats len:%d\n", get_size(pats) )
+printf("song len:%d\n", pta_get_song_length() )
+printf("song file:%s\n", pta_file_name)
+
+$pat = pats[ pattab[ cur_pat ] ]
+$pat_lines = get_ysize( $pat )
+$pat_tracks = get_xsize( $pat )
+
+playSound(60, 12, 120)
+
+// setLineEvent($line, $track, $note, $sound, $vel)
+// setLineEvent(0, 0, 60, 12, 120)
+// setLineEvent(0, 1, 0, 12, 120)
+// setLineEvent(0, 2, 0, 12, 120)
+
+// setLineEvent(1, 0, 0, 12, 0)
+// setLineEvent(1, 1, 0, 12, 0)
+// setLineEvent(1, 2, 0, 12, 0)
+
+// setLineEvent(2, 0, 0, 12, 0)
+// setLineEvent(2, 1, 0, 12, 0)
+// setLineEvent(2, 2, 0, 12, 0)
+
+// setLineEvent(3, 0, 0, 12, 0)
+// setLineEvent(3, 1, 0, 12, 0)
+// setLineEvent(3, 2, 0, 12, 0)
+
+// setLineEvent(4, 0, 0, 12, 0)
+// setLineEvent(4, 1, 0, 12, 0)
+// setLineEvent(4, 2, 0, 12, 0)
+
+PTA_BPM = 80
+
+pta_reset()
+
+printf("lines:%d tracks:%d \n", $pat_lines, $pat_tracks)
+
+for($i = 0; $i < $pat_lines; $i + 1) {
+  $evts = getLineEvents($i)
+  printf("line:%d\n", $i)
+  for($j = 0; $j < get_ysize($evts); $j + 1) {
+    printf("[t%d] note:%d snd:%d vel:%d \n", $j, $evts[0, $j], $evts[1, $j], $evts[2, $j])
+  }
+}
+
+
 while 1
 {
     clear()
@@ -20,7 +74,11 @@ while 1
         if EVT[ EVT_TYPE ] == EVT_QUIT { break2 }
         else {
             if EVT[ EVT_TYPE] != EVT_MOUSEMOVE {
-                printf("key evt: %d\n", EVT[EVT_KEY])
+              printf("key evt: %d\n", EVT[EVT_KEY])
+              if EVT[EVT_KEY] == 112 && EVT[EVT_TYPE] == EVT_BUTTONDOWN {
+                printf("playing:%d\n", play_status);
+                pta_play(!play_status)
+              }
             }
         }
     }
@@ -31,3 +89,75 @@ while 1
 }
 pta_deinit()
 
+
+fn printIntContainer($container) {
+  $len = get_size($container)
+  printf("[")
+  for($i = 0; $i < $len; $i + 1) 
+  {
+    printf("%d,", $container[$i])
+  }
+  printf("]\n")  
+}
+
+fn printStringContainer($container) {
+  $len = get_size($container)
+  printf("[")
+  for($i = 0; $i < $len; $i + 1) 
+  {
+    printf("%s,", $container[$i])
+  }
+  printf("]\n")  
+}
+
+// returns a container with 1 y axis line per track
+// and on x-axis: 0=note, 1=sound_id, 2=velocity 
+fn getLineEvents($line) {
+  $pat = pats[ pattab[ cur_pat ] ]
+  $pat_lines = get_ysize( $pat )
+  $pat_tracks = get_xsize( $pat )
+
+  $pat_ptr = $line * $pat_tracks
+  $evt = $pat[ $pat_ptr ]
+
+  $line_events = new (3, $pat_tracks - 1, INT8)
+  clear($line_events)
+
+  $t = 0 while( $t < $pat_tracks )
+  {
+    $evt = $pat[ $pat_ptr ]
+    if $evt
+    {
+      $n = ( $evt & 255 ) - 1
+      $snd_num = ( $evt >> 8 ) & 255
+      $vel = ( $evt >> 16 ) & 255
+
+      $line_events[0, $t] = $n
+      $line_events[1, $t] = $snd_num
+      $line_events[2, $t] = $vel
+      // printf("line:%d track:%d note:%d sound:%d velocity:%d\n", $line, $t, $n, $snd_num, $vel)
+    }
+    $pat_ptr + 1
+    $t + 1
+  }
+
+  ret($line_events)
+}
+
+fn setLineEvent($line, $track, $note, $sound, $vel) {
+  $pat = pats[ pattab[ cur_pat ] ]
+  $pat_tracks = get_xsize( $pat )
+  $pat_ptr = ($line * $pat_tracks) + $track
+
+  $evt = ($note + 1 & 255) 
+  $s = ($sound & 255) << 8 
+  $v = ($vel & 255) << 16
+  $evt = $evt + $s + $v
+
+  $pat[ $pat_ptr ] = $evt
+}
+
+fn playSound($note, $sound_id, $vel) {
+  // play a sound
+  pta_set_event(0, $note, $sound_id, $vel)
+}
