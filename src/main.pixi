@@ -1,4 +1,6 @@
 include "../lib/pixitracker_audio_engine.pixi"
+include "tones.pixi"
+include "pattern_page.pixi"
 
 _last_line = 0
 _line_display = "0000"
@@ -62,10 +64,10 @@ for($i = 0; $i < $pat_lines; $i + 1) {
   $evts = getLineEvents($i)
   printf("line:%d\n", $i)
   for($j = 0; $j < get_ysize($evts); $j + 1) {
-    printf("[t%d] note:%d snd:%d vel:%d \n", $j, $evts[0, $j], $evts[1, $j], $evts[2, $j])
+    $noteStr = midiNumToNoteString( $evts[0, $j])
+    printf("[t%d] note:%s snd:%d vel:%d \n", $j, $noteStr, $evts[1, $j], $evts[2, $j])
   }
 }
-
 
 while 1
 {
@@ -84,6 +86,10 @@ while 1
     }
     tick()
     print(_line_display, 0, 0, YELLOW)
+
+
+    clear(BLACK)  
+    printMarginColumn(0, 15)
 
     frame()
 }

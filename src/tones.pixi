@@ -1,0 +1,25 @@
+notes = new(12)
+notes[0] = "C"
+notes[1] = "c"
+notes[2] = "D"
+notes[3] = "d"
+notes[4] = "E"
+notes[5] = "F"
+notes[6] = "f"
+notes[7] = "G"
+notes[8] = "g"
+notes[9] = "A"
+notes[10] = "a"
+notes[11] = "B"
+
+fn midiNumToNoteString($noteNum) {
+  if $noteNum == 0 {
+    ret("--")
+  }  
+  $idx = $noteNum % 12
+  $tone = clone(notes[$idx]) // *sigh* no string constants, so need to make sure not to modify note table values
+  $octave = ""
+  num2str($octave, ($noteNum div 12))
+  strcat($tone, $octave)
+  ret($tone)
+}

@@ -1,0 +1,23 @@
+
+fn updateScreenSize() {
+  scr = get_screen()
+  xsize = get_xsize( scr )
+  ysize = get_ysize( scr )
+  hxsize = xsize div 2
+  hysize = ysize div 2
+}
+
+// lines is a container containing the values to print as a column
+fn printMarginColumn($start, $end) {
+    updateScreenSize()
+    $line = "00"  
+    $charwidth = get_text_xsize($line)
+    $charheight = get_text_ysize($line)
+    for(i = $start; i <= $end; i + 1)
+    {
+        // highlight every 4th row
+        if i % 4 == 0 { $colour = YELLOW } else { $colour = BLUE }
+        sprintf($line, "%0.2d", i)
+        print($line, -hxsize + $charwidth, -hysize + ((i + 1) * $charheight), $colour)
+    }
+}
